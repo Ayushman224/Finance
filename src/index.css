@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
 body {
-  font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+  font-family: Inter, system-ui, Segoe UI, Roboto, sans-serif;
+  background-color: #050505;
+  color: #f4f4f5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle scrollbar for main content */
+.neon-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.neon-scroll::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 999px;
 }

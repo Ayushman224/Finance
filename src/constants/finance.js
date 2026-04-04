@@ -13,4 +13,4 @@ export const INITIAL_TRANSACTIONS = [
   { id: 12, date: '2026-03-29', amount: 220, category: 'Dining', type: 'expense', note: 'Weekend dinner' },
 ]
 
-export const CHART_COLORS = ['#5b8def', '#8e6ff7', '#35bcbf', '#f1a43c', '#ef5c7d', '#7f8ca3']
+export const CHART_COLORS = ['#a855f7', '#3b82f6', '#22d3ee', '#c084fc', '#6366f1', '#94a3b8']
