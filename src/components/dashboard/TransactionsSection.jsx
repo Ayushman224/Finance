@@ -1,4 +1,4 @@
-import { Pencil, Search, Trash2 } from 'lucide-react'
+import { Download, Pencil, Search, Trash2 } from 'lucide-react'
 import { cardClass } from '../ui/Card'
 import { formatCurrency } from '../../utils/finance'
 
@@ -7,9 +7,12 @@ export function TransactionsSection({
   onQueryChange,
   filterType,
   onFilterTypeChange,
+  dateRange,
+  onDateRangeChange,
   sortBy,
   onSortChange,
   filteredTransactions,
+  onDownloadFiltered,
   role,
   onEdit,
   onDelete,
@@ -31,7 +34,7 @@ export function TransactionsSection({
             Viewer mode is read-only. Select Admin role to add, edit, or delete transactions.
           </p>
         )}
-        <div className="mb-4 flex flex-wrap gap-3">
+        <div className="mb-4 flex flex-wrap items-end gap-3">
           <label className="relative min-w-[260px] flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input
@@ -46,20 +49,37 @@ export function TransactionsSection({
             onChange={(e) => onFilterTypeChange(e.target.value)}
             className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm"
           >
-            <option value="all">All Categories</option>
+            <option value="all">All types</option>
             <option value="income">Income</option>
             <option value="expense">Expense</option>
+          </select>
+          <select
+            value={dateRange}
+            onChange={(e) => onDateRangeChange(e.target.value)}
+            className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm"
+          >
+            <option value="all">All time</option>
+            <option value="last30">Last 30 days</option>
           </select>
           <select
             value={sortBy}
             onChange={(e) => onSortChange(e.target.value)}
             className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm"
           >
-            <option value="newest">Last 30 Days</option>
-            <option value="oldest">Oldest First</option>
-            <option value="amountHigh">Amount High to Low</option>
-            <option value="amountLow">Amount Low to High</option>
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="amountHigh">Amount high to low</option>
+            <option value="amountLow">Amount low to high</option>
           </select>
+          <button
+            type="button"
+            onClick={onDownloadFiltered}
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50"
+            title="Download CSV matching current filters"
+          >
+            <Download size={16} />
+            Download CSV
+          </button>
         </div>
         <div className="overflow-auto">
           <table className="w-full min-w-[860px] border-separate border-spacing-y-2 text-sm">

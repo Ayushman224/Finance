@@ -65,9 +65,20 @@ export const buildObservation = (transactions, income, expenses) => {
   return 'Strong savings behavior this period. Great job keeping expenses controlled.'
 }
 
-export const filterAndSortTransactions = (transactions, query, filterType, sortBy) => {
+/** ISO date string YYYY-MM-DD for start of "today minus n local calendar days". */
+export const cutoffIsoDaysAgo = (days) => {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  d.setDate(d.getDate() - days)
+  return d.toISOString().slice(0, 10)
+}
+
+export const filterAndSortTransactions = (transactions, query, filterType, sortBy, dateRange = 'all') => {
   const text = query.trim().toLowerCase()
+  const cutoffLast30 = dateRange === 'last30' ? cutoffIsoDaysAgo(30) : null
+
   let list = transactions.filter((t) => {
+    if (cutoffLast30 && t.date < cutoffLast30) return false
     const matchesType = filterType === 'all' || t.type === filterType
     const matchesText =
       !text ||

@@ -10,7 +10,7 @@ import {
   formatCurrency,
 } from '../utils/finance'
 
-export function useDashboardDerived(transactions, query, filterType, sortBy) {
+export function useDashboardDerived(transactions, query, filterType, sortBy, dateRange = 'all') {
   const { income, expenses, balance } = useMemo(() => summarize(transactions), [transactions])
 
   const trendData = useMemo(() => buildTrendData(transactions), [transactions])
@@ -33,8 +33,8 @@ export function useDashboardDerived(transactions, query, filterType, sortBy) {
   )
 
   const filteredTransactions = useMemo(
-    () => filterAndSortTransactions(transactions, query, filterType, sortBy),
-    [transactions, query, filterType, sortBy],
+    () => filterAndSortTransactions(transactions, query, filterType, sortBy, dateRange),
+    [transactions, query, filterType, sortBy, dateRange],
   )
 
   return {

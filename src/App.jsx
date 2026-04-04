@@ -8,6 +8,13 @@ import { OverviewSection } from './components/dashboard/OverviewSection'
 import { TransactionsSection } from './components/dashboard/TransactionsSection'
 import { AnalyticsSection } from './components/dashboard/AnalyticsSection'
 import { AddTransactionForm } from './components/dashboard/AddTransactionForm'
+import { Modal } from './components/ui/Modal'
+import { SettingsModalContent } from './components/overlays/SettingsModalContent'
+import { SupportModalContent } from './components/overlays/SupportModalContent'
+import { downloadTransactionsCsv, downloadTransactionsJson } from './utils/exportCsv'
+
+const REPO_URL = 'https://github.com/Ayushman224/Finance'
+const SUPPORT_EMAIL = 'ayushmantripathi224@gmail.com'
 
 function App() {
   const [transactions, setTransactions] = useState(() => {
@@ -19,6 +26,7 @@ function App() {
   const [query, setQuery] = useState('')
   const [filterType, setFilterType] = useState('all')
   const [sortBy, setSortBy] = useState('newest')
+  const [dateRange, setDateRange] = useState('all')
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState({
     date: todayIso(),
@@ -28,6 +36,7 @@ function App() {
     note: '',
   })
   const addFormRef = useRef(null)
+  const [activeModal, setActiveModal] = useState(null)
 
   const {
     income,
@@ -39,7 +48,7 @@ function App() {
     monthlyComparison,
     observation,
     filteredTransactions,
-  } = useDashboardDerived(transactions, query, filterType, sortBy)
+  } = useDashboardDerived(transactions, query, filterType, sortBy, dateRange)
 
   useEffect(() => {
     localStorage.setItem('finance-transactions', JSON.stringify(transactions))
@@ -134,6 +143,26 @@ function App() {
   const formFieldsLocked = role !== 'admin'
   const submitLocked = role !== 'admin'
 
+  const handleExportCsv = () => {
+    downloadTransactionsCsv(transactions, 'full-ledger')
+  }
+
+  const handleDownloadFilteredLedger = () => {
+    downloadTransactionsCsv(filteredTransactions, 'filtered-ledger')
+  }
+
+  const handleExportJson = () => {
+    downloadTransactionsJson(transactions)
+  }
+
+  const handleResetDemoData = () => {
+    if (role !== 'admin') return
+    if (!window.confirm('Reset all transactions to the built-in demo data? Your current ledger will be replaced.')) return
+    setTransactions(INITIAL_TRANSACTIONS)
+    resetForm()
+    setActiveModal(null)
+  }
+
   return (
     <div className="h-screen overflow-hidden bg-slate-100 text-slate-900">
       <div className="grid h-full grid-cols-1 lg:grid-cols-[220px_1fr]">
@@ -141,6 +170,8 @@ function App() {
           section={section}
           onNavigate={setSection}
           role={role}
+          onOpenSettings={() => setActiveModal('settings')}
+          onOpenSupport={() => setActiveModal('support')}
           onAddTransaction={() => {
             setSection('transactions')
             scrollToAddForm()
@@ -153,6 +184,7 @@ function App() {
             onTabChange={handleTabChange}
             role={role}
             onRoleChange={handleRoleChange}
+            onExportCsv={handleExportCsv}
           />
 
           {section === 'overview' && (
@@ -171,9 +203,12 @@ function App() {
               onQueryChange={setQuery}
               filterType={filterType}
               onFilterTypeChange={setFilterType}
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
               sortBy={sortBy}
               onSortChange={setSortBy}
               filteredTransactions={filteredTransactions}
+              onDownloadFiltered={handleDownloadFilteredLedger}
               role={role}
               onEdit={startEdit}
               onDelete={deleteTransaction}
@@ -206,6 +241,22 @@ function App() {
           />
         </main>
       </div>
+
+      {activeModal === 'settings' && (
+        <Modal title="Settings" onClose={() => setActiveModal(null)}>
+          <SettingsModalContent
+            transactionCount={transactions.length}
+            onExportJson={handleExportJson}
+            onResetDemoData={handleResetDemoData}
+            resetDisabled={role !== 'admin'}
+          />
+        </Modal>
+      )}
+      {activeModal === 'support' && (
+        <Modal title="Support" onClose={() => setActiveModal(null)}>
+          <SupportModalContent repoUrl={REPO_URL} supportEmail={SUPPORT_EMAIL} />
+        </Modal>
+      )}
     </div>
   )
 }

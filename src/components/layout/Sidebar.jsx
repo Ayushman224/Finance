@@ -6,7 +6,7 @@ const NAV_ITEMS = [
   { id: 'analytics', label: 'Analytics', icon: ChartColumn },
 ]
 
-export function Sidebar({ section, onNavigate, onAddTransaction, role }) {
+export function Sidebar({ section, onNavigate, onAddTransaction, role, onOpenSettings, onOpenSupport }) {
   return (
     <aside className="hidden h-screen border-r border-slate-200 bg-[#f5f7fb] px-5 py-6 lg:flex lg:flex-col">
       <div>
@@ -44,11 +44,19 @@ export function Sidebar({ section, onNavigate, onAddTransaction, role }) {
         <p className="mt-2 text-xs text-amber-700">Switch to Admin to modify data.</p>
       )}
       <div className="mt-6 space-y-3 text-sm text-slate-600">
-        <button type="button" className="flex items-center gap-2 text-left hover:text-slate-800">
+        <button
+          type="button"
+          className="flex w-full items-center gap-2 rounded-lg px-1 py-1 text-left hover:bg-slate-200/60 hover:text-slate-900"
+          onClick={onOpenSettings}
+        >
           <Settings size={15} />
           <span>Settings</span>
         </button>
-        <button type="button" className="flex items-center gap-2 text-left hover:text-slate-800">
+        <button
+          type="button"
+          className="flex w-full items-center gap-2 rounded-lg px-1 py-1 text-left hover:bg-slate-200/60 hover:text-slate-900"
+          onClick={onOpenSupport}
+        >
           <HelpCircle size={15} />
           <span>Support</span>
         </button>
