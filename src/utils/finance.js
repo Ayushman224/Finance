@@ -3,8 +3,26 @@ export const formatCurrency = (value) =>
 
 export const todayIso = () => new Date().toISOString().slice(0, 10)
 
-export const monthLabel = (dateStr) =>
-  new Date(dateStr).toLocaleDateString('en-US', { month: 'short' })
+/**
+ * Parse calendar date from YYYY-MM-DD in the user's local timezone.
+ * Avoids `new Date('YYYY-MM-DD')` UTC parsing, which can shift the month
+ * (e.g. April 1 UTC → March 31 in US timezones).
+ */
+export const parseIsoDateLocal = (iso) => {
+  if (!iso || typeof iso !== 'string') return new Date(NaN)
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso.trim())
+  if (!m) return new Date(NaN)
+  const y = Number(m[1])
+  const mo = Number(m[2])
+  const d = Number(m[3])
+  if (!y || mo < 1 || mo > 12 || d < 1 || d > 31) return new Date(NaN)
+  return new Date(y, mo - 1, d)
+}
+
+export const monthLabel = (dateStr) => {
+  const d = parseIsoDateLocal(dateStr)
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-US', { month: 'short' })
+}
 
 export const summarize = (transactions) => {
   const income = transactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
@@ -16,20 +34,34 @@ export const buildTrendData = (transactions) => {
   const monthly = {}
   transactions
     .slice()
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .sort((a, b) => parseIsoDateLocal(a.date) - parseIsoDateLocal(b.date))
     .forEach((t) => {
-      const key = `${new Date(t.date).getFullYear()}-${new Date(t.date).getMonth() + 1}`
+      const d = parseIsoDateLocal(t.date)
+      if (Number.isNaN(d.getTime())) return
+      const y = d.getFullYear()
+      const monthNum = d.getMonth() + 1
+      const key = `${y}-${String(monthNum).padStart(2, '0')}`
       if (!monthly[key]) {
-        monthly[key] = { month: monthLabel(t.date), income: 0, expenses: 0 }
+        const short = d.toLocaleDateString('en-US', { month: 'short' })
+        monthly[key] = {
+          monthKey: key,
+          label: `${short} '${String(y).slice(-2)}`,
+          month: short,
+          income: 0,
+          expenses: 0,
+        }
       }
       monthly[key][t.type === 'income' ? 'income' : 'expenses'] += t.amount
     })
 
   let runningBalance = 0
-  return Object.values(monthly).map((m) => {
-    runningBalance += m.income - m.expenses
-    return { ...m, balance: runningBalance }
-  })
+  return Object.keys(monthly)
+    .sort()
+    .map((key) => {
+      const row = monthly[key]
+      runningBalance += row.income - row.expenses
+      return { ...row, balance: runningBalance }
+    })
 }
 
 export const buildCategoryData = (transactions) => {
@@ -89,8 +121,8 @@ export const filterAndSortTransactions = (transactions, query, filterType, sortB
   })
 
   list = [...list].sort((a, b) => {
-    if (sortBy === 'newest') return new Date(b.date) - new Date(a.date)
-    if (sortBy === 'oldest') return new Date(a.date) - new Date(b.date)
+    if (sortBy === 'newest') return parseIsoDateLocal(b.date) - parseIsoDateLocal(a.date)
+    if (sortBy === 'oldest') return parseIsoDateLocal(a.date) - parseIsoDateLocal(b.date)
     if (sortBy === 'amountHigh') return b.amount - a.amount
     if (sortBy === 'amountLow') return a.amount - b.amount
     return 0
